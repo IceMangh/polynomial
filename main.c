@@ -1,7 +1,6 @@
 #include "poly.h"
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "poly_test.h"
 
 // Функция для ручного ввода полинома
 Polynomial* input_poly(const FieldInfo* type) {
@@ -16,28 +15,11 @@ Polynomial* input_poly(const FieldInfo* type) {
     printf("Введите коэффициенты (от a%d до a0 через пробел): ", deg);
 
     // Ввод зависит от типа данных
-    Polynomial* P = Poly_Enter(p, type);
+    Polynomial* P = Poly_Enter(p);
     return P;
 }
 
-// Запуск автоматических тестов
-void run_tests() {
 
-    Polynomial* p1 = Poly_Create(1, &INT_FIELD_INFO);
-    int v = 1; Poly_Set(p1, 0, &v);
-    v = 2; Poly_Set(p1, 1, &v);
-
-    Polynomial* p2 = Poly_Create(1, &INT_FIELD_INFO);
-    v = 5; Poly_Set(p2, 0, &v);
-    v = 3; Poly_Set(p2, 1, &v);
-
-    printf("A: "); Poly_Print(p1);
-    printf("B: "); Poly_Print(p2);
-    Polynomial* sum = Poly_Add(p1, p2);
-    printf("A + B: "); Poly_Print(sum);
-
-
-}
 
 int main() {
     int choice;

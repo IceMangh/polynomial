@@ -9,26 +9,15 @@ Polynomial* Poly_Create(int degree, const FieldInfo* type) {
     p->type = type;
     p->coefficients = calloc(degree + 1, type->size);
 
-//    for (int i = 0; i <= degree; i++) {
-//        type->zero((char*)p->coefficients + i * type->size);
-//    }
     return p;
 }
 
 
-Polynomial* Poly_Enter(Polynomial* p, const FieldInfo* type){
-    if (strcmp(type->typeName, "Integer") == 0) {
-        for (int i = p->degree; i >= 0; i--) {
-            int val;
-            scanf("%d", &val);
-            Poly_Set(p, i, &val);
-        }
-    } else {
-        for (int i = p->degree; i >= 0; i--) {
-            double val;
-            scanf("%lf", &val);
-            Poly_Set(p, i, &val);
-        }
+Polynomial* Poly_Enter(Polynomial* p) {
+    if (!p) return NULL;
+
+    for (int i = p->degree; i >= 0; i--) {
+        p->type->scan(Poly_Get(p, i));
     }
     return p;
 }
@@ -52,13 +41,14 @@ void Poly_Set(Polynomial* p, int index, const void* value) {
 }
 
 Polynomial* Poly_Add(const Polynomial* a, const Polynomial* b) {
-    if (a->type != b->type) return NULL;
+    if (a->type != b->type) {
+        return NULL;
+    }
 
     int maxDeg = (a->degree > b->degree) ? a->degree : b->degree;
     Polynomial* res = Poly_Create(maxDeg, a->type);
 
-    // Временный буфер для нуля
-    char zeroBuf[64];
+    char zeroBuf[32];
     a->type->zero(zeroBuf);
 
     for (int i = 0; i <= maxDeg; i++) {
@@ -72,13 +62,15 @@ Polynomial* Poly_Add(const Polynomial* a, const Polynomial* b) {
 }
 
 Polynomial* Poly_Mult(const Polynomial* a, const Polynomial* b) {
-    if (a->type != b->type) return NULL;
+    if (a->type != b->type) {
+        return NULL;
+    }
 
     int newDeg = a->degree + b->degree;
     Polynomial* res = Poly_Create(newDeg, a->type);
 
-    char tempMul[64];
-    char tempSum[64];
+    char tempMul[32];
+    char tempSum[32];
 
     for (int i = 0; i <= a->degree; i++) {
         for (int j = 0; j <= b->degree; j++) {
@@ -105,7 +97,7 @@ Polynomial* Poly_MultScalar(const Polynomial* a, const void* scalar) {
 void Poly_Eval(const Polynomial* p, const void* x, void* result) {
     memcpy(result, Poly_Get(p, p->degree), p->type->size);
 
-    char temp[64];
+    char temp[32];
     for (int i = p->degree - 1; i >= 0; i--) {
         p->type->mult(result, x, temp);
         p->type->add(temp, Poly_Get(p, i), result);
@@ -113,23 +105,21 @@ void Poly_Eval(const Polynomial* p, const void* x, void* result) {
 }
 
 Polynomial* Poly_Compose(const Polynomial* p, const Polynomial* q) {
-    if (p->type != q->type) return NULL;
+    if (p->type != q->type) {
+        return NULL;
+    }
 
-    // acc = a_n (старший коэффициент P как константа)
     Polynomial* acc = Poly_Create(0, p->type);
     Poly_Set(acc, 0, Poly_Get(p, p->degree));
 
     for (int i = p->degree - 1; i >= 0; i--) {
-        // acc = acc * q
         Polynomial* multRes = Poly_Mult(acc, q);
         Poly_Free(acc);
         acc = multRes;
 
-        // Создаем константный полином a[i]
         Polynomial* constPoly = Poly_Create(0, p->type);
         Poly_Set(constPoly, 0, Poly_Get(p, i));
 
-        // acc = acc + a[i]
         Polynomial* addRes = Poly_Add(acc, constPoly);
 
         Poly_Free(acc);
@@ -148,26 +138,3 @@ void Poly_Print(const Polynomial* p) {
     printf(" ]\n");
 }
 
-// =========================================================
-// РЕАЛИЗАЦИЯ ТИПОВ (INT, DOUBLE)
-// =========================================================
-
-// --- Integer ---
-//static void int_zero(void* d) { *(int*)d = 0; }
-//static void int_add(const void* a, const void* b, void* r) { *(int*)r = *(const int*)a + *(const int*)b; }
-//static void int_mult(const void* a, const void* b, void* r) { *(int*)r = *(const int*)a * *(const int*)b; }
-//static void int_print(const void* a) { printf("%d", *(const int*)a); }
-//
-//const FieldInfo INT_FIELD_INFO = {
-//        "Integer", sizeof(int), int_zero, int_add, int_mult, int_print
-//};
-//
-//// --- Double ---
-//static void dbl_zero(void* d) { *(double*)d = 0.0; }
-//static void dbl_add(const void* a, const void* b, void* r) { *(double*)r = *(const double*)a + *(const double*)b; }
-//static void dbl_mult(const void* a, const void* b, void* r) { *(double*)r = *(const double*)a * *(const double*)b; }
-//static void dbl_print(const void* a) { printf("%.2f", *(const double*)a); }
-//
-//const FieldInfo DBL_FIELD_INFO = {
-//        "Double", sizeof(double), dbl_zero, dbl_add, dbl_mult, dbl_print
-//};

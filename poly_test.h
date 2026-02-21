@@ -1,8 +1,6 @@
-//
-// Created by Носов Данил on 21.02.2026.
-//
+#ifndef POLY_TEST_H
+#define POLY_TEST_H
 
-#ifndef MNOGOCHLEN_POLY_TEST_H
-#define MNOGOCHLEN_POLY_TEST_H
+void run_tests(void);
 
-#endif //MNOGOCHLEN_POLY_TEST_H
+#endif
