@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
+#include "scalars.h"
 
 void run_tests(void) {
     printf("=== ЗАПУСК ТЕСТОВ (assert) ===\n\n");

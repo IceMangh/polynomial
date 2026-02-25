@@ -1,6 +1,7 @@
 #include "poly.h"
 #include <stdio.h>
 #include "poly_test.h"
+#include "scalars.h"
 
 // Функция для ручного ввода полинома
 Polynomial* input_poly(const FieldInfo* type) {
@@ -43,6 +44,7 @@ int main() {
         printf("7. Умножить A на скаляр\n");
         printf("8. Запустить тесты\n");
         printf("9. Вывести полиномы\n");
+        printf("10. Взять производную A'\n");
         printf("0. Выход\n");
         printf("> ");
 
@@ -114,6 +116,19 @@ int main() {
             case 9:
                 Poly_Print(pA);
                 Poly_Print(pB);
+                break;
+            case 10:
+                if (pA) {
+                    pRes = Poly_Diff(pA);
+                    if (pRes) {
+                        printf("A' = "); Poly_Print(pRes);
+                        Poly_Free(pRes);
+                    } else {
+                        printf("Ошибка выделения памяти\n");
+                    }
+                } else {
+                    printf("Сначала введите полином A.\n");
+                }
                 break;
             case 0:
                 goto cleanup;

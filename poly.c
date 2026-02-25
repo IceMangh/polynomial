@@ -48,7 +48,7 @@ Polynomial* Poly_Add(const Polynomial* a, const Polynomial* b) {
     int maxDeg = (a->degree > b->degree) ? a->degree : b->degree;
     Polynomial* res = Poly_Create(maxDeg, a->type);
 
-    char zeroBuf[32];
+    void* zeroBuf = malloc(a->type->size); //сделать динамику
     a->type->zero(zeroBuf);
 
     for (int i = 0; i <= maxDeg; i++) {
@@ -58,6 +58,8 @@ Polynomial* Poly_Add(const Polynomial* a, const Polynomial* b) {
 
         a->type->add(a_val, b_val, r_val);
     }
+
+    free(zeroBuf);
     return res;
 }
 
@@ -69,8 +71,8 @@ Polynomial* Poly_Mult(const Polynomial* a, const Polynomial* b) {
     int newDeg = a->degree + b->degree;
     Polynomial* res = Poly_Create(newDeg, a->type);
 
-    char tempMul[32];
-    char tempSum[32];
+    void* tempMul = malloc(a->type->size);
+    void* tempSum = malloc(b->type->size);;
 
     for (int i = 0; i <= a->degree; i++) {
         for (int j = 0; j <= b->degree; j++) {
@@ -83,6 +85,8 @@ Polynomial* Poly_Mult(const Polynomial* a, const Polynomial* b) {
             memcpy(resPtr, tempSum, a->type->size);
         }
     }
+    free(tempSum);
+    free(tempMul);
     return res;
 }
 
@@ -97,11 +101,12 @@ Polynomial* Poly_MultScalar(const Polynomial* a, const void* scalar) {
 void Poly_Eval(const Polynomial* p, const void* x, void* result) {
     memcpy(result, Poly_Get(p, p->degree), p->type->size);
 
-    char temp[32];
+    void* temp = malloc(p->type->size);
     for (int i = p->degree - 1; i >= 0; i--) {
         p->type->mult(result, x, temp);
         p->type->add(temp, Poly_Get(p, i), result);
     }
+    free(temp);
 }
 
 Polynomial* Poly_Compose(const Polynomial* p, const Polynomial* q) {
@@ -127,6 +132,39 @@ Polynomial* Poly_Compose(const Polynomial* p, const Polynomial* q) {
         acc = addRes;
     }
     return acc;
+}
+
+
+Polynomial* Poly_Diff(const Polynomial* a) {
+    if (!a) {
+        return NULL;
+    }
+
+    if (a->degree == 0) {
+        Polynomial* res = Poly_Create(0, a->type);
+        if (!res) return NULL;
+        a->type->zero(Poly_Get(res, 0));
+        return res;
+    }
+
+
+    int deg = a->degree-1;
+    Polynomial* res = Poly_Create(deg, a->type);
+
+    void* k_val = malloc(a->type->size);
+    void* temp  = malloc(a->type->size);
+
+    for (int n = 1; n <= deg+1; n++) {
+        void* old_coeff = Poly_Get(a, n);
+
+        a->type->from_int(k_val, n);
+        a->type->mult(k_val, old_coeff, temp);
+
+        memcpy(Poly_Get(res, n - 1), temp, a->type->size);
+    }
+    free(k_val);
+    free(temp);
+    return res;
 }
 
 void Poly_Print(const Polynomial* p) {

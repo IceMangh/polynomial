@@ -12,6 +12,7 @@ typedef struct FieldInfo {
     void (*mult)(const void* a, const void* b, void* res);// Умножение
     void (*print)(const void* a);                   // Вывод
     void (*scan)(void* dest);                       // Ввод
+    void (*from_int)(void* dest, int value);
 } FieldInfo;
 
 typedef struct Polynomial {
@@ -20,8 +21,6 @@ typedef struct Polynomial {
     const FieldInfo* type;
 } Polynomial;
 
-extern const FieldInfo INT_FIELD_INFO;
-extern const FieldInfo DBL_FIELD_INFO;
 
 
 Polynomial* Poly_Create(int degree, const FieldInfo* type);
@@ -37,6 +36,7 @@ Polynomial* Poly_MultScalar(const Polynomial* a, const void* scalar);
 
 void Poly_Eval(const Polynomial* p, const void* x, void* result);
 Polynomial* Poly_Compose(const Polynomial* p, const Polynomial* q);
+Polynomial* Poly_Diff(const Polynomial* p);
 
 // Вывод
 void Poly_Print(const Polynomial* p);
