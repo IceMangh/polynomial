@@ -3,7 +3,7 @@
 
 #include "poly.h"
 
-extern const FieldInfo INT_FIELD_INFO;
-extern const FieldInfo DBL_FIELD_INFO;
+const FieldInfo* INT_FIELD_INFO(void);
+const FieldInfo* DBL_FIELD_INFO(void);
 
 #endif

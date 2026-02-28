@@ -21,10 +21,8 @@ typedef struct Polynomial {
     const FieldInfo* type;
 } Polynomial;
 
-
-
 Polynomial* Poly_Create(int degree, const FieldInfo* type);
-Polynomial* Poly_Enter(Polynomial* a);
+Polynomial* Poly_Input(Polynomial* a);
 void Poly_Free(Polynomial* p);
 
 void Poly_Set(Polynomial* p, int index, const void* value);
@@ -36,9 +34,8 @@ Polynomial* Poly_MultScalar(const Polynomial* a, const void* scalar);
 
 void Poly_Eval(const Polynomial* p, const void* x, void* result);
 Polynomial* Poly_Compose(const Polynomial* p, const Polynomial* q);
-Polynomial* Poly_Diff(const Polynomial* p);
+Polynomial* Poly_Derivative(const Polynomial* p);
 
-// Вывод
 void Poly_Print(const Polynomial* p);
 
 #endif

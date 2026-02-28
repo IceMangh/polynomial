@@ -3,7 +3,7 @@
 #include "poly_test.h"
 #include "scalars.h"
 
-// Функция для ручного ввода полинома
+
 Polynomial* input_poly(const FieldInfo* type) {
     int deg;
     printf("Введите степень многочлена: ");
@@ -16,24 +16,22 @@ Polynomial* input_poly(const FieldInfo* type) {
     printf("Введите коэффициенты (от a%d до a0 через пробел): ", deg);
 
     // Ввод зависит от типа данных
-    Polynomial* P = Poly_Enter(p);
+    Polynomial* P = Poly_Input(p);
     return P;
 }
 
-
-
 int main() {
     int choice;
-    const FieldInfo* currentType = &INT_FIELD_INFO;
+    const FieldInfo* currentType = INT_FIELD_INFO();
 
     printf("Выберите тип данных:\n1. Целые числа (Integer)\n2. Вещественные (Double)\n> ");
     if (scanf("%d", &choice) == 1 && choice == 2) {
-        currentType = &DBL_FIELD_INFO;
+        currentType = DBL_FIELD_INFO();
     }
 
     Polynomial *pA = NULL, *pB = NULL, *pRes = NULL;
-
-    while (1) {
+    int continue_running = 1;
+    while (continue_running) {
         printf("\n=== МЕНЮ (%s) ===\n", currentType->typeName);
         printf("1. Ввести полином A\n");
         printf("2. Ввести полином B\n");
@@ -78,7 +76,7 @@ int main() {
             case 5:
                 if (pA) {
                     printf("Введите значение x: ");
-                    if (currentType == &INT_FIELD_INFO) {
+                    if (currentType == INT_FIELD_INFO()) {
                         int x, r; scanf("%d", &x);
                         Poly_Eval(pA, &x, &r);
                         printf("A(%d) = %d\n", x, r);
@@ -99,7 +97,7 @@ int main() {
             case 7:
                 if (pA) {
                     printf("Введите скаляр: ");
-                    if (currentType == &INT_FIELD_INFO) {
+                    if (currentType == INT_FIELD_INFO()) {
                         int s; scanf("%d", &s);
                         pRes = Poly_MultScalar(pA, &s);
                     } else {
@@ -119,7 +117,7 @@ int main() {
                 break;
             case 10:
                 if (pA) {
-                    pRes = Poly_Diff(pA);
+                    pRes = Poly_Derivative(pA);
                     if (pRes) {
                         printf("A' = "); Poly_Print(pRes);
                         Poly_Free(pRes);
@@ -131,13 +129,12 @@ int main() {
                 }
                 break;
             case 0:
-                goto cleanup;
+                continue_running = 0;
             default:
                 printf("Неверная команда.\n");
-        }
-    }
+        } // switch
+    } // while
 
-    cleanup:
     Poly_Free(pA);
     Poly_Free(pB);
     return 0;

@@ -12,8 +12,7 @@ Polynomial* Poly_Create(int degree, const FieldInfo* type) {
     return p;
 }
 
-
-Polynomial* Poly_Enter(Polynomial* p) {
+Polynomial* Poly_Input(Polynomial* p) {
     if (!p) return NULL;
 
     for (int i = p->degree; i >= 0; i--) {
@@ -30,7 +29,9 @@ void Poly_Free(Polynomial* p) {
 }
 
 void* Poly_Get(const Polynomial* p, int index) {
-    if (index < 0 || index > p->degree) return NULL;
+    if (index < 0 || index > p->degree) {
+        return NULL;
+    }
     return (char*)p->coefficients + index * p->type->size;
 }
 
@@ -52,11 +53,11 @@ Polynomial* Poly_Add(const Polynomial* a, const Polynomial* b) {
     a->type->zero(zeroBuf);
 
     for (int i = 0; i <= maxDeg; i++) {
-        void* r_val = Poly_Get(res, i);
-        void* a_val = (i <= a->degree) ? Poly_Get(a, i) : zeroBuf;
-        void* b_val = (i <= b->degree) ? Poly_Get(b, i) : zeroBuf;
+        void* rVal = Poly_Get(res, i);
+        void* aVal = (i <= a->degree) ? Poly_Get(a, i) : zeroBuf;
+        void* bVal = (i <= b->degree) ? Poly_Get(b, i) : zeroBuf;
 
-        a->type->add(a_val, b_val, r_val);
+        a->type->add(aVal, bVal, rVal);
     }
 
     free(zeroBuf);
@@ -134,8 +135,7 @@ Polynomial* Poly_Compose(const Polynomial* p, const Polynomial* q) {
     return acc;
 }
 
-
-Polynomial* Poly_Diff(const Polynomial* a) {
+Polynomial* Poly_Derivative(const Polynomial* a) {
     if (!a) {
         return NULL;
     }
@@ -151,18 +151,18 @@ Polynomial* Poly_Diff(const Polynomial* a) {
     int deg = a->degree-1;
     Polynomial* res = Poly_Create(deg, a->type);
 
-    void* k_val = malloc(a->type->size);
+    void* kVal = malloc(a->type->size);
     void* temp  = malloc(a->type->size);
 
     for (int n = 1; n <= deg+1; n++) {
-        void* old_coeff = Poly_Get(a, n);
+        void* oldCoeff = Poly_Get(a, n);
 
-        a->type->from_int(k_val, n);
-        a->type->mult(k_val, old_coeff, temp);
+        a->type->from_int(kVal, n);
+        a->type->mult(kVal, oldCoeff, temp);
 
         memcpy(Poly_Get(res, n - 1), temp, a->type->size);
     }
-    free(k_val);
+    free(kVal);
     free(temp);
     return res;
 }
