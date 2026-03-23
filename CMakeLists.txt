@@ -1,13 +1,16 @@
-cmake_minimum_required(VERSION 4.0)
-project(mnogochlen)
+cmake_minimum_required(VERSION 3.16)
+project(Polynomial C)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
-add_executable(mnogochlen main.c
-        scalars.h
-        double_FieldInfo.c
-        poly.h
-        poly.c
-        poly_test.h
-        poly_test.c
-        int_FieldInfo.c)
+add_executable(Polynomial
+        Main.c
+        Scalars.h
+        Field_Info.h
+        Double_Field_Info.c
+        Poly.h
+        Poly.c
+        Poly_Test.h
+        Poly_Test.c
+        Int_Field_Info.c)

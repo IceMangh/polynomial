@@ -1,38 +1,68 @@
-#include "poly.h"
+#include "Poly.h"
+#include "Poly_Test.h"
+#include "Scalars.h"
 #include <stdio.h>
-#include "poly_test.h"
-#include "scalars.h"
 
+static void Clear_Input_Buffer(void) {
+    int Character = 0;
+    do {
+        Character = getchar();
+    } while (Character != '\n' && Character != EOF);
+}
 
-Polynomial* input_poly(const FieldInfo* type) {
-    int deg;
+static void Print_Last_Error(void) {
+    const char* Error_Message = Poly_Get_Last_Error();
+    if (Error_Message != NULL) {
+        fprintf(stderr, "Ошибка: %s\n", Error_Message);
+    }
+}
+
+static Polynomial* Input_Polynomial(const Field_Info* Type) {
+    int Degree = 0;
     printf("Введите степень многочлена: ");
-    if (scanf("%d", &deg) != 1 || deg < 0) {
+    if (scanf("%d", &Degree) != 1 || Degree < 0) {
+        Clear_Input_Buffer();
         printf("Некорректная степень.\n");
         return NULL;
     }
 
-    Polynomial* p = Poly_Create(deg, type);
-    printf("Введите коэффициенты (от a%d до a0 через пробел): ", deg);
+    Polynomial* Polynomial_Value = Poly_Create(Degree, Type);
+    if (Polynomial_Value == NULL) {
+        Print_Last_Error();
+        return NULL;
+    }
 
-    // Ввод зависит от типа данных
-    Polynomial* P = Poly_Input(p);
-    return P;
+    printf("Введите коэффициенты (от a%d до a0 через пробел): ", Degree);
+    if (Poly_Input(Polynomial_Value) != Poly_Status_Ok) {
+        Clear_Input_Buffer();
+        Print_Last_Error();
+        Poly_Free(Polynomial_Value);
+        return NULL;
+    }
+
+    return Polynomial_Value;
 }
 
 int main() {
-    int choice;
-    const FieldInfo* currentType = INT_FIELD_INFO();
+    int Choice = 0;
+    const Field_Info* Current_Type = Int_Field_Info();
 
     printf("Выберите тип данных:\n1. Целые числа (Integer)\n2. Вещественные (Double)\n> ");
-    if (scanf("%d", &choice) == 1 && choice == 2) {
-        currentType = DBL_FIELD_INFO();
+    if (scanf("%d", &Choice) == 1) {
+        if (Choice == 2) {
+            Current_Type = Double_Field_Info();
+        }
+    } else {
+        Clear_Input_Buffer();
+        printf("Некорректный выбор, используется Integer.\n");
     }
 
-    Polynomial *pA = NULL, *pB = NULL, *pRes = NULL;
-    int continue_running = 1;
-    while (continue_running) {
-        printf("\n=== МЕНЮ (%s) ===\n", currentType->typeName);
+    Polynomial* Polynomial_A = NULL;
+    Polynomial* Polynomial_B = NULL;
+    Polynomial* Polynomial_Result = NULL;
+    int Continue_Running = 1;
+    while (Continue_Running) {
+        printf("\n=== МЕНЮ (%s) ===\n", Current_Type->Type_Name);
         printf("1. Ввести полином A\n");
         printf("2. Ввести полином B\n");
         printf("3. Сложить (A + B)\n");
@@ -46,96 +76,177 @@ int main() {
         printf("0. Выход\n");
         printf("> ");
 
-        if (scanf("%d", &choice) != 1) break;
+        if (scanf("%d", &Choice) != 1) {
+            Clear_Input_Buffer();
+            printf("Неверная команда.\n");
+            continue;
+        }
 
-        switch (choice) {
+        switch (Choice) {
             case 1:
-                if (pA) Poly_Free(pA);
-                pA = input_poly(currentType);
-                if (pA) { printf("A = "); Poly_Print(pA); }
+                Poly_Free(Polynomial_A);
+                Polynomial_A = Input_Polynomial(Current_Type);
+                if (Polynomial_A != NULL) {
+                    printf("A = ");
+                    Poly_Print(Polynomial_A);
+                }
                 break;
             case 2:
-                if (pB) Poly_Free(pB);
-                pB = input_poly(currentType);
-                if (pB) { printf("B = "); Poly_Print(pB); }
+                Poly_Free(Polynomial_B);
+                Polynomial_B = Input_Polynomial(Current_Type);
+                if (Polynomial_B != NULL) {
+                    printf("B = ");
+                    Poly_Print(Polynomial_B);
+                }
                 break;
             case 3:
-                if (pA && pB) {
-                    pRes = Poly_Add(pA, pB);
-                    printf("Результат: "); Poly_Print(pRes);
-                    Poly_Free(pRes);
-                } else printf("Сначала введите полиномы A и B.\n");
+                if (Polynomial_A != NULL && Polynomial_B != NULL) {
+                    Polynomial_Result = Poly_Add(Polynomial_A, Polynomial_B);
+                    if (Polynomial_Result == NULL) {
+                        Print_Last_Error();
+                    } else {
+                        printf("Результат: ");
+                        Poly_Print(Polynomial_Result);
+                        Poly_Free(Polynomial_Result);
+                    }
+                } else {
+                    printf("Сначала введите полиномы A и B.\n");
+                }
                 break;
             case 4:
-                if (pA && pB) {
-                    pRes = Poly_Mult(pA, pB);
-                    printf("Результат: "); Poly_Print(pRes);
-                    Poly_Free(pRes);
-                } else printf("Сначала введите полиномы A и B.\n");
+                if (Polynomial_A != NULL && Polynomial_B != NULL) {
+                    Polynomial_Result = Poly_Multiply(Polynomial_A, Polynomial_B);
+                    if (Polynomial_Result == NULL) {
+                        Print_Last_Error();
+                    } else {
+                        printf("Результат: ");
+                        Poly_Print(Polynomial_Result);
+                        Poly_Free(Polynomial_Result);
+                    }
+                } else {
+                    printf("Сначала введите полиномы A и B.\n");
+                }
                 break;
             case 5:
-                if (pA) {
+                if (Polynomial_A != NULL) {
                     printf("Введите значение x: ");
-                    if (currentType == INT_FIELD_INFO()) {
-                        int x, r; scanf("%d", &x);
-                        Poly_Eval(pA, &x, &r);
-                        printf("A(%d) = %d\n", x, r);
+                    if (Current_Type == Int_Field_Info()) {
+                        int X_Value = 0;
+                        int Result = 0;
+                        if (scanf("%d", &X_Value) != 1) {
+                            Clear_Input_Buffer();
+                            printf("Некорректное значение x.\n");
+                            break;
+                        }
+                        if (Poly_Evaluate(Polynomial_A, &X_Value, &Result) != Poly_Status_Ok) {
+                            Print_Last_Error();
+                            break;
+                        }
+                        printf("A(%d) = %d\n", X_Value, Result);
                     } else {
-                        double x, r; scanf("%lf", &x);
-                        Poly_Eval(pA, &x, &r);
-                        printf("A(%.2f) = %.2f\n", x, r);
+                        double X_Value = 0.0;
+                        double Result = 0.0;
+                        if (scanf("%lf", &X_Value) != 1) {
+                            Clear_Input_Buffer();
+                            printf("Некорректное значение x.\n");
+                            break;
+                        }
+                        if (Poly_Evaluate(Polynomial_A, &X_Value, &Result) != Poly_Status_Ok) {
+                            Print_Last_Error();
+                            break;
+                        }
+                        printf("A(%.2f) = %.2f\n", X_Value, Result);
                     }
-                } else printf("Сначала введите полином A.\n");
+                } else {
+                    printf("Сначала введите полином A.\n");
+                }
                 break;
             case 6:
-                if (pA && pB) {
-                    pRes = Poly_Compose(pA, pB);
-                    printf("Результат A(B(x)): "); Poly_Print(pRes);
-                    Poly_Free(pRes);
-                } else printf("Сначала введите полиномы A и B.\n");
+                if (Polynomial_A != NULL && Polynomial_B != NULL) {
+                    Polynomial_Result = Poly_Compose(Polynomial_A, Polynomial_B);
+                    if (Polynomial_Result == NULL) {
+                        Print_Last_Error();
+                    } else {
+                        printf("Результат A(B(x)): ");
+                        Poly_Print(Polynomial_Result);
+                        Poly_Free(Polynomial_Result);
+                    }
+                } else {
+                    printf("Сначала введите полиномы A и B.\n");
+                }
                 break;
             case 7:
-                if (pA) {
+                if (Polynomial_A != NULL) {
                     printf("Введите скаляр: ");
-                    if (currentType == INT_FIELD_INFO()) {
-                        int s; scanf("%d", &s);
-                        pRes = Poly_MultScalar(pA, &s);
+                    if (Current_Type == Int_Field_Info()) {
+                        int Scalar = 0;
+                        if (scanf("%d", &Scalar) != 1) {
+                            Clear_Input_Buffer();
+                            printf("Некорректный скаляр.\n");
+                            break;
+                        }
+                        Polynomial_Result = Poly_Multiply_Scalar(Polynomial_A, &Scalar);
                     } else {
-                        double s; scanf("%lf", &s);
-                        pRes = Poly_MultScalar(pA, &s);
+                        double Scalar = 0.0;
+                        if (scanf("%lf", &Scalar) != 1) {
+                            Clear_Input_Buffer();
+                            printf("Некорректный скаляр.\n");
+                            break;
+                        }
+                        Polynomial_Result = Poly_Multiply_Scalar(Polynomial_A, &Scalar);
                     }
-                    printf("Результат: "); Poly_Print(pRes);
-                    Poly_Free(pRes);
-                } else printf("Сначала введите полином A.\n");
+                    if (Polynomial_Result == NULL) {
+                        Print_Last_Error();
+                    } else {
+                        printf("Результат: ");
+                        Poly_Print(Polynomial_Result);
+                        Poly_Free(Polynomial_Result);
+                    }
+                } else {
+                    printf("Сначала введите полином A.\n");
+                }
                 break;
             case 8:
-                run_tests();
+                Run_Tests();
                 break;
             case 9:
-                Poly_Print(pA);
-                Poly_Print(pB);
+                if (Polynomial_A != NULL) {
+                    printf("A = ");
+                    Poly_Print(Polynomial_A);
+                } else {
+                    printf("A не задан.\n");
+                }
+                if (Polynomial_B != NULL) {
+                    printf("B = ");
+                    Poly_Print(Polynomial_B);
+                } else {
+                    printf("B не задан.\n");
+                }
                 break;
             case 10:
-                if (pA) {
-                    pRes = Poly_Derivative(pA);
-                    if (pRes) {
-                        printf("A' = "); Poly_Print(pRes);
-                        Poly_Free(pRes);
+                if (Polynomial_A != NULL) {
+                    Polynomial_Result = Poly_Derivative(Polynomial_A);
+                    if (Polynomial_Result != NULL) {
+                        printf("A' = ");
+                        Poly_Print(Polynomial_Result);
+                        Poly_Free(Polynomial_Result);
                     } else {
-                        printf("Ошибка выделения памяти\n");
+                        Print_Last_Error();
                     }
                 } else {
                     printf("Сначала введите полином A.\n");
                 }
                 break;
             case 0:
-                continue_running = 0;
+                Continue_Running = 0;
+                break;
             default:
                 printf("Неверная команда.\n");
-        } // switch
-    } // while
+                break;
+        }
+    }
 
-    Poly_Free(pA);
-    Poly_Free(pB);
+    Poly_Free(Polynomial_A);
+    Poly_Free(Polynomial_B);
     return 0;
 }

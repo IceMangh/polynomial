@@ -1,41 +1,43 @@
 #ifndef POLY_H
 #define POLY_H
 
-#include <stddef.h>
+#include "Field_Info.h"
 
-typedef struct FieldInfo {
-    const char* typeName;
-    size_t size;
-    void (*zero)(void* dest);
-
-    void (*add)(const void* a, const void* b, void* res); // Сложение
-    void (*mult)(const void* a, const void* b, void* res);// Умножение
-    void (*print)(const void* a);                   // Вывод
-    void (*scan)(void* dest);                       // Ввод
-    void (*from_int)(void* dest, int value);
-} FieldInfo;
+typedef enum Poly_Status {
+    Poly_Status_Ok = 0,
+    Poly_Status_Invalid_Argument,
+    Poly_Status_Invalid_Degree,
+    Poly_Status_Type_Mismatch,
+    Poly_Status_Index_Out_Of_Range,
+    Poly_Status_Allocation_Failed,
+    Poly_Status_Input_Failed
+} Poly_Status;
 
 typedef struct Polynomial {
-    void* coefficients;
-    int degree;
-    const FieldInfo* type;
+    void* Coefficients;
+    int Degree;
+    const Field_Info* Type;
 } Polynomial;
 
-Polynomial* Poly_Create(int degree, const FieldInfo* type);
-Polynomial* Poly_Input(Polynomial* a);
-void Poly_Free(Polynomial* p);
+Polynomial* Poly_Create(int Degree, const Field_Info* Type);
+Poly_Status Poly_Input(Polynomial* Polynomial_Value);
+void Poly_Free(Polynomial* Polynomial_Value);
 
-void Poly_Set(Polynomial* p, int index, const void* value);
-void* Poly_Get(const Polynomial* p, int index);
+Poly_Status Poly_Set(Polynomial* Polynomial_Value, int Index, const void* Value);
+void* Poly_Get(const Polynomial* Polynomial_Value, int Index);
 
-Polynomial* Poly_Add(const Polynomial* a, const Polynomial* b);
-Polynomial* Poly_Mult(const Polynomial* a, const Polynomial* b);
-Polynomial* Poly_MultScalar(const Polynomial* a, const void* scalar);
+Polynomial* Poly_Add(const Polynomial* Left, const Polynomial* Right);
+Polynomial* Poly_Multiply(const Polynomial* Left, const Polynomial* Right);
+Polynomial* Poly_Multiply_Scalar(const Polynomial* Polynomial_Value, const void* Scalar);
 
-void Poly_Eval(const Polynomial* p, const void* x, void* result);
-Polynomial* Poly_Compose(const Polynomial* p, const Polynomial* q);
-Polynomial* Poly_Derivative(const Polynomial* p);
+Poly_Status Poly_Evaluate(const Polynomial* Polynomial_Value, const void* X_Value, void* Result);
+Polynomial* Poly_Compose(const Polynomial* Outer, const Polynomial* Inner);
+Polynomial* Poly_Derivative(const Polynomial* Polynomial_Value);
 
-void Poly_Print(const Polynomial* p);
+Poly_Status Poly_Print(const Polynomial* Polynomial_Value);
+
+Poly_Status Poly_Get_Last_Status(void);
+const char* Poly_Get_Last_Error(void);
+void Poly_Clear_Last_Error(void);
 
 #endif

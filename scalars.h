@@ -1,9 +1,9 @@
 #ifndef SCALARS_H
 #define SCALARS_H
 
-#include "poly.h"
+#include "Field_Info.h"
 
-const FieldInfo* INT_FIELD_INFO(void);
-const FieldInfo* DBL_FIELD_INFO(void);
+const Field_Info* Int_Field_Info(void);
+const Field_Info* Double_Field_Info(void);
 
 #endif
